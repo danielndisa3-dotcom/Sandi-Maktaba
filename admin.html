@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sandi</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .row{display:flex;gap:0.5rem;align-items:center}
+      .small{font-size:.9rem;color:#af0202}
+      .verify-btn{background:#063d11;color:#460101;border-radius:6px;padding:.35rem .6rem;border:none}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Sandi</h1>
+      <p class="small">Enter your dmin key to load and verify confirmations.</p>
+
+      <div class="card">
+        <label for="adminkey">Admin key</label>
+        <input id="adminkey"/>
+        <button id="refresh" class="btn">Load confirmations</button>
+      </div>
+
+      <div id="list" class="card">
+        <h2>Confirmations</h2>
+        <div id="items">No data loaded.</div>
+      </div>
+    </div>
+
+    <script>
+      const adminkey = document.getElementById('adminkey');
+      const refresh = document.getElementById('refresh');
+      const items = document.getElementById('items');
+
+      async function load() {
+        const key = adminkey.value.trim();
+        if (!key) return alert('Enter admin key');
+        const res = await fetch('/api/list?key=' + encodeURIComponent(key));
+        if (!res.ok) return alert('Unauthorized or server error');
+        const data = await res.json();
+        if (!data.length) items.innerHTML = '<p>No confirmations yet.</p>';
+        else items.innerHTML = data.map(d => {
+          return `<div class="row"><div style="flex:1"><strong>${d.name}</strong> <span class="small">${d.phone} • ${d.provider} • ${d.amount} • tx:${d.tx}</span><br/><span class="small">id:${d.id} • created:${new Date(d.createdAt).toLocaleString()} • verified:${d.verified}</span></div><div>${d.verified?'<em>Verified</em>':'<button data-id="'+d.id+'" class="verify-btn">Verify</button>'}</div></div>`;
+        }).join('<hr/>');
+
+        document.querySelectorAll('.verify-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const res = await fetch('/api/verify', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({ id, key: adminkey.value.trim(  ) })
+            });
+            if (!res.ok) return alert('Verify failed');
+            alert('Verified');
+            load();
+          });
+        });
+      }
+
+      refresh.addEventListener('click', load);
+    </script>
+  </body>
+</html>

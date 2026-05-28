@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sandi — Buy & Download</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="brand">Sandi Maktaba</h1>
+        <p class="tag">Ongeza maarifa</p>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="product card">
+        <h2>"Sandi books list"</h2>
+        <p class="price">Price: <strong>TZS 3,000</strong></p>
+        <p>This is a sample listing for a downloadable book. After you pay via mobile money to the receiver number below, submit your payment details to receive the download link.</p>
+
+        <div class="payment-info">
+          <h3>Automatic Mobile Payment</h3>
+          <p><strong>Receiver number:</strong> +255744873006</p>
+          <p><strong>Receiver name:</strong> DANIEL</p>
+          <p><strong>How it works:</strong></p>
+          <ol>
+            <li>Enter your details and select your payment provider.</li>
+            <li>A payment prompt will appear on your phone automatically.</li>
+            <li>Confirm the payment by entering your provider's PIN/password.</li>
+            <li>Your download will be ready immediately after successful payment.</li>
+          </ol>
+        </div>
+
+        <form id="confirm-form" class="form">
+          <label for="buyer-name">Your name</label>
+          <input id="buyer-name" name="name" required placeholder="Jane Doe" />
+
+          <label for="buyer-phone">Phone number (with country code)</label>
+          <input id="buyer-phone" name="phone" type="tel" required placeholder="+255744873006" />
+
+          <label for="provider">Mobile Money Provider</label>
+          <select id="provider" name="provider" required>
+            <option value="">Select provider</option>
+            <option value="mpesa">M-Pesa</option>
+            <option value="airtel">Airtel Money</option>
+            <option value="tigo">Tigo Pesa</option>
+            <option value="halotel">HaloPesa</option>
+          </select>
+
+          <label for="password">Confirm with password</label>
+          <input id="password" name="password" type="password" required placeholder="Enter your mobile money PIN or password" />
+
+        
+
+          <button type="submit" class="btn primary">Click to pay (TZS 3,000)</button>
+        </form>
+
+        <p id="response" class="response"></p>
+
+        <div id="download-box" class="download" hidden>
+          <p>Thank you! Your submission was received. After verification you'll be able to download the book at the link below:</p>
+          <a class="btn" id="download-link" href="#">Download (will be available after verification)</a>
+        </div>
+      </section>
+
+      <section class="help card">
+        <h3>Notes for the seller</h3>
+        <ul>
+          <li>Replace <code>private/book.txt</code> with a real PDF named <code>book.pdf</code> if desired.</li>
+          <li>This flow requires manual verification by the seller via the admin UI.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <small>© SandiMaktaba</small>
+      </div>
+    </footer>
+
+    <script>
+      const form = document.getElementById('confirm-form');
+      const response = document.getElementById('response');
+      const downloadBox = document.getElementById('download-box');
+      const downloadLink = document.getElementById('download-link');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        response.textContent = 'Processing payment...';
+        
+        const data = new FormData(form);
+        const body = {
+          name: data.get('name'),
+          phone: data.get('phone'),
+          provider: data.get('provider'),
+          amount: '3000',
+          password: data.get('password')
+        };
+
+        try {
+          const res = await fetch('/api/Click to pay now', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error || 'Server error');
+
+          response.textContent = 'Payment successful! Download is ready.';
+          downloadBox.hidden = false;
+          downloadLink.href = json.downloadUrl || '#';
+          downloadLink.textContent = 'Download Book (Sandi maktaba)';
+        } catch (err) {
+          response.textContent = 'Error: ' + (err.message || 'Failed to process payment');
+        }
+        form.reset();
+      });
+    </script>
+  </body>
+</html>

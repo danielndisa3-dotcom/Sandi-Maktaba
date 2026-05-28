@@ -1,0 +1,7 @@
+Sandi maktaba (private copy)
+
+This is a placeholder private copy used by the server for protected downloads.
+
+Replace this with your real PDF (book.pdf) under the `private` folder and update `server.js` if needed.
+
+Thank you for using Sandi.
